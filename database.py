@@ -29,18 +29,18 @@ def select_from_beers(fields):
 
 def check_if_exists(beer_id_shop, shop):
     cur.execute(
-        f"SELECT * FROM beers where beer_id_shop = {beer_id_shop} AND shop = {shop}"
+        "SELECT * FROM beers where beer_id_shop = ? AND shop = ?", (beer_id_shop, shop)
     )
     row = cur.fetchone()
 
     return row
 
 
-def create_beer(beer_id_shop, url_site, shop):
+def create_beer(beer_id_shop, url_site, shop, untappd_url=None):
     try:
         cur.execute(
-            "INSERT INTO beers (beer_id_shop, url_site, shop) VALUES (?,?,?)",
-            (beer_id_shop, url_site, shop),
+            "INSERT INTO beers (beer_id_shop, url_site, shop, untappd_url) VALUES (?,?,?,?)",
+            (beer_id_shop, url_site, shop, untappd_url),
         )
     except mariadb.Error as e:
         print(f"create_beer, Error: {e}")

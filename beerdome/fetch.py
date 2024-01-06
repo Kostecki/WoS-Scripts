@@ -63,7 +63,7 @@ def get_links_from_shop():
         exists = check_if_exists(beer_id_shop, shop)
 
         if not exists:
-            create_beer(beer_id_shop, url_site, int(config["BEERDOME"]["shopId"]))
+            create_beer(beer_id_shop, url_site, shop)
 
 
 def get_beer_details():
@@ -78,27 +78,32 @@ def get_beer_details():
             r = requests.get(url, headers=headers)
             beer = r.json()["product"]
             if beer["specs"]:
-                for key in beer["specs"]:
-                    if beer["specs"][key]["title"] == "Untappd":
-                        html = beer["specs"][key]["value"]
-                        soup = BeautifulSoup(html, "html.parser")
-                        untappd_url = soup.find("a")["href"]
+                has_untapp_link = any(
+                    "Untappd" in d.values() for d in beer["specs"].values()
+                )
 
-                        if "untappd.com/" in untappd_url:
-                            set_untappd_urls(untappd_url, beer_id_shop, shop)
-                    else:
-                        set_skip(beer_id_shop, shop)
+                if has_untapp_link:
+                    for key in beer["specs"]:
+                        if beer["specs"][key]["title"] == "Untappd":
+                            html = beer["specs"][key]["value"]
+                            soup = BeautifulSoup(html, "html.parser")
+                            untappd_url = soup.find("a")["href"]
+
+                            if "untappd.com/" in untappd_url:
+                                set_untappd_urls(untappd_url, beer_id_shop, shop)
+                            else:
+                                set_skip(beer_id_shop, shop)
             else:
                 set_skip(beer_id_shop, shop)
 
             time.sleep(int(config["GENERAL"]["sleepTime"]))
 
 
-# print("Getting beers")
-# get_beers_from_shop()
-# get_links_from_shop()
-# get_beer_details()
-# get_untappd_styles()
+print("Getting beers")
+get_beers_from_shop()
+get_links_from_shop()
+get_beer_details()
+get_untappd_styles()
 get_missing_styles()
 
 db_close()
